@@ -1,18 +1,42 @@
 <script setup lang="ts">
 import { getHomeGoodsGuessLikeAPI } from '@/services/home'
-import type { PageResult } from '@/types/global'
+import type { PageParams } from '@/types/global'
 import type { GuessItem } from '@/types/home'
 import { onMounted, ref } from 'vue'
 
-const guessRef = ref<PageResult<GuessItem>>()
+const finished = ref(false)
+const pageParams: Required<PageParams> = {
+  page: 1,
+  pageSize: 10,
+}
+const guessList = ref<GuessItem[]>([])
 // 获取猜你喜欢数据
 const getHomeGoodsGuessLikeData = async () => {
   const res = await getHomeGoodsGuessLikeAPI()
-  guessRef.value = res.result
+  console.log(res)
+  // guessList.value = res.result.items
+
+  // 判断页数是否已经全部加载完
+  if (finished.value) {
+    return uni.showToast({ title: '没有更多数据了', icon: 'none' })
+  }
+  // 追加数组
+  guessList.value.push(...res.result.items)
+
+  if (pageParams.page < res.result.pages) {
+    // 页码累加
+    pageParams.page++
+  } else {
+    finished.value = true
+  }
 }
 
 onMounted(() => {
   getHomeGoodsGuessLikeData()
+})
+
+defineExpose({
+  getMore: getHomeGoodsGuessLikeData,
 })
 </script>
 
@@ -24,7 +48,7 @@ onMounted(() => {
   <view class="guess">
     <navigator
       class="guess-item"
-      v-for="item in guessRef?.items"
+      v-for="item in guessList"
       :key="item.id"
       :url="`/pages/goods/goods?id=${item.id}`"
     >
@@ -36,7 +60,7 @@ onMounted(() => {
       </view>
     </navigator>
   </view>
-  <view class="loading-text"> 正在加载... </view>
+  <view class="loading-text"> {{ finished ? '已经到底了~' : '正在加载...' }} </view>
 </template>
 
 <style lang="scss">

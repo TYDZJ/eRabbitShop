@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { getCategoryTopAPI } from '@/services/category'
 import { getHomeBannerAPI } from '@/services/home'
-import type { CategoryChildItem, CategoryTopItem } from '@/types/category'
+import type { CategoryTopItem } from '@/types/category'
 import type { BannerItem } from '@/types/home'
 import { computed, onMounted, ref } from 'vue'
+import PageSekeleton from './components/PageSekeleton.vue'
 
 // 获取轮播图数据
 const bannerList = ref<BannerItem[]>([])
@@ -25,17 +26,22 @@ const getCategoryTopData = async () => {
 
 // 二级分类数据
 const subCategoryList = computed(() => {
-  return categoryList.value[activeIndex.value].children || []
+  return categoryList.value[activeIndex.value]?.children || []
 })
 
-onMounted(() => {
-  getHomeBannerData()
-  getCategoryTopData()
+// 加载状态
+const isloading = ref(true)
+
+onMounted(async () => {
+  await Promise.all([getHomeBannerData(), getCategoryTopData()])
+  // 结束加载
+  isloading.value = false
 })
 </script>
 
 <template>
-  <view class="viewport">
+  <PageSekeleton v-if="isloading" />
+  <view class="viewport" v-else>
     <!-- 搜索框 -->
     <view class="search">
       <view class="input">

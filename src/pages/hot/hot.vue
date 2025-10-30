@@ -30,7 +30,7 @@ const activeIndex = ref(0)
 const getHotRecommendData = async () => {
   // 请求热门推荐数据
   const res = await getHotRecommendAPI(currentMap!.url, {
-    page: 30,
+    page: import.meta.env.DEV ? 30 : 1,
     pageSize: 10,
   })
   console.log(res)

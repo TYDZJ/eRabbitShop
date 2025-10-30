@@ -6,7 +6,7 @@ import { onMounted, ref } from 'vue'
 
 const finished = ref(false)
 const pageParams: Required<PageParams> = {
-  page: 1,
+  page: import.meta.env.DEV ? 30 : 1,
   pageSize: 10,
 }
 const guessList = ref<GuessItem[]>([])

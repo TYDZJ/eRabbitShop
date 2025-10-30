@@ -3,7 +3,7 @@ import { http } from '@/utils/http'
 
 // 分类列表-小程序
 export const getCategoryTopAPI = () => {
-  return http<CategoryTopItem>({
+  return http<CategoryTopItem[]>({
     url: '/category/top',
     method: 'GET',
   })

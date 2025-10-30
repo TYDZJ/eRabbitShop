@@ -12,14 +12,11 @@ const pageParams: Required<PageParams> = {
 const guessList = ref<GuessItem[]>([])
 // 获取猜你喜欢数据
 const getHomeGoodsGuessLikeData = async () => {
-  const res = await getHomeGoodsGuessLikeAPI()
-  console.log(res)
-  // guessList.value = res.result.items
-
   // 判断页数是否已经全部加载完
   if (finished.value) {
     return uni.showToast({ title: '没有更多数据了', icon: 'none' })
   }
+  const res = await getHomeGoodsGuessLikeAPI(pageParams)
   // 追加数组
   guessList.value.push(...res.result.items)
 
@@ -31,12 +28,20 @@ const getHomeGoodsGuessLikeData = async () => {
   }
 }
 
+// 重置数据
+const resetData = () => {
+  guessList.value = []
+  pageParams.page = 1
+  finished.value = false
+}
+
 onMounted(() => {
   getHomeGoodsGuessLikeData()
 })
 
 defineExpose({
   getMore: getHomeGoodsGuessLikeData,
+  resetData,
 })
 </script>
 

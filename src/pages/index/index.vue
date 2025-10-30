@@ -35,15 +35,36 @@ onLoad(() => {
   getHomeHotData()
 })
 
+//触底滚动加载猜你喜欢
 const guessRef = ref<XtxGuessInstance>()
 const onScrollToLower = () => {
   guessRef.value?.getMore()
+}
+
+// 下拉刷新
+const refresher_triggered = ref(false)
+const onRefresherrefresh = async () => {
+  refresher_triggered.value = true
+
+  // 重置 猜你喜欢 数据
+  guessRef.value?.resetData()
+  // 重新获取数据
+  await Promise.all([getHomeBannerData(), getCategoryData(), getHomeHotData()])
+  // 结束下拉刷新
+  refresher_triggered.value = false
 }
 </script>
 
 <template>
   <CustomNavbar />
-  <scroll-view class="scroll-view" scroll-y @scrolltolower="onScrollToLower">
+  <scroll-view
+    class="scroll-view"
+    scroll-y
+    @scrolltolower="onScrollToLower"
+    :refresher-enabled="true"
+    @refresherrefresh="onRefresherrefresh"
+    :refresher-triggered="refresher_triggered"
+  >
     <XtxSwiper :list="bannerList" />
     <CategoryPanel :list="categoryList" />
     <HotPanel :list="hotList" />

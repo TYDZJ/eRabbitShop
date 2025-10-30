@@ -23,13 +23,16 @@ uni.setNavigationBarTitle({ title: currentMap!.title })
 // 推荐封面图
 const bannerPicture = ref('')
 // 子类选项
-const subTypes = ref<SubTypeItem[]>([])
+const subTypes = ref<(SubTypeItem & { finish?: boolean })[]>([])
 // 当前选项索引
 const activeIndex = ref(0)
 // 获取热门推荐数据
 const getHotRecommendData = async () => {
   // 请求热门推荐数据
-  const res = await getHotRecommendAPI(currentMap!.url)
+  const res = await getHotRecommendAPI(currentMap!.url, {
+    page: 30,
+    pageSize: 10,
+  })
   console.log(res)
   bannerPicture.value = res.result.bannerPicture
   subTypes.value = res.result.subTypes
@@ -38,6 +41,32 @@ const getHotRecommendData = async () => {
 onLoad(() => {
   getHotRecommendData()
 })
+
+// 触底加载更多
+const onScrolltolower = async () => {
+  // 获取当前选项
+  const currentSubType = subTypes.value[activeIndex.value]
+  // 分页条件，判断页数是否已经全部加载完
+  if (currentSubType.goodsItems.page < currentSubType.goodsItems.pages) {
+    // 当前选项的子类数据页码加1
+    currentSubType.goodsItems.page++
+  } else {
+    currentSubType.finish = true
+    // 退出并轻提示
+    return uni.showToast({ title: '没有更多数据了', icon: 'none' })
+  }
+
+  // 请求数据
+  const res = await getHotRecommendAPI(currentMap!.url, {
+    subType: currentSubType.id,
+    page: currentSubType.goodsItems.page,
+    pageSize: currentSubType.goodsItems.pageSize,
+  })
+  // 获取新的子类数据
+  const newSubType = res.result.subTypes[activeIndex.value]
+  // 添加新的子类数据
+  currentSubType.goodsItems.items.push(...newSubType.goodsItems.items)
+}
 </script>
 
 <template>
@@ -65,6 +94,7 @@ onLoad(() => {
       v-show="activeIndex === index"
       scroll-y
       class="scroll-view"
+      @scrolltolower="onScrolltolower"
     >
       <view class="goods">
         <navigator
@@ -82,7 +112,9 @@ onLoad(() => {
           </view>
         </navigator>
       </view>
-      <view class="loading-text">正在加载...</view>
+      <view class="loading-text">
+        {{ item.finish ? '已经到底力~' : '正在加载...' }}
+      </view>
     </scroll-view>
   </view>
 </template>

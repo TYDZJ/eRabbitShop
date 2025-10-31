@@ -4,6 +4,7 @@ import { getGoodsAPI } from '@/services/goods'
 import type { GoodsResult } from '@/types/goods'
 import { onLoad } from '@dcloudio/uni-app'
 import { ref } from 'vue'
+import ServicePanel from './components/ServicePanel.vue'
 
 // 获取屏幕边界到安全区域距离
 const { safeAreaInsets } = uni.getSystemInfoSync()
@@ -34,6 +35,12 @@ const onTapImg = () => {
     current: activeIndex.value,
   })
 }
+
+// uni-popup
+const popup = ref<{
+  open: (type?: UniHelper.UniPopupType) => void
+  close: () => void
+}>()
 </script>
 
 <template>
@@ -74,7 +81,7 @@ const onTapImg = () => {
           <text class="label">送至</text>
           <text class="text ellipsis"> 请选择收获地址 </text>
         </view>
-        <view class="item arrow">
+        <view class="item arrow" @tap="popup!.open()">
           <text class="label">服务</text>
           <text class="text ellipsis"> 无忧退 快速退款 免费包邮 </text>
         </view>
@@ -144,6 +151,10 @@ const onTapImg = () => {
       <view class="buynow"> 立即购买 </view>
     </view>
   </view>
+
+  <uni-popup ref="popup" type="bottom" background-color="#fff">
+    <ServicePanel @close="popup?.close()" />
+  </uni-popup>
 </template>
 
 <style lang="scss">

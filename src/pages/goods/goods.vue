@@ -26,7 +26,14 @@ onLoad(() => {
 })
 
 // 轮播图当前索引
-const activeIndex = ref(1)
+const activeIndex = ref(0)
+// 点击图片预览
+const onTapImg = () => {
+  uni.previewImage({
+    urls: goodsData.value!.mainPictures,
+    current: activeIndex.value,
+  })
+}
 </script>
 
 <template>
@@ -35,13 +42,13 @@ const activeIndex = ref(1)
     <view class="goods">
       <!-- 商品主图 -->
       <view class="preview">
-        <swiper circular>
+        <swiper circular @change="activeIndex = $event.detail.current">
           <swiper-item v-for="item in goodsData?.mainPictures" :key="item">
-            <image mode="aspectFill" :src="item" />
+            <image mode="aspectFill" :src="item" @tap="onTapImg()" />
           </swiper-item>
         </swiper>
         <view class="indicator">
-          <text class="current">{{ activeIndex }}</text>
+          <text class="current">{{ activeIndex + 1 }}</text>
           <text class="split">/</text>
           <text class="total">{{ goodsData?.mainPictures.length }}</text>
         </view>

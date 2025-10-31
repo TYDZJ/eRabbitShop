@@ -1,5 +1,68 @@
 <script setup lang="ts">
-//
+import {
+  postLoginTraditionalAPI,
+  postLoginWxMinAPI,
+  postLoginWxMinSimpleAPI,
+} from '@/services/login'
+import { useMemberStore } from '@/stores'
+import type { LoginResult } from '@/types/member'
+import { onLoad } from '@dcloudio/uni-app'
+import { reactive } from 'vue'
+
+const memberStore = useMemberStore()
+
+// 获取code凭证
+let code = ''
+onLoad(async () => {
+  const res = await wx.login()
+  code = res.code
+})
+
+// 手机号快捷登录
+const onGetphonenumber: UniHelper.ButtonOnGetphonenumber = async (e) => {
+  const encryptedData = e.detail?.encryptedData
+  const iv = e.detail?.iv
+
+  // 判断数据是否完整
+  if (!encryptedData || !iv) return uni.showToast({ title: '快捷登录失败', icon: 'error' })
+  const res = await postLoginWxMinAPI({
+    code,
+    encryptedData,
+    iv,
+  })
+  loginSuccess(res.result)
+}
+
+// 模拟手机号快捷登录
+const onGetphonenumberSimple = async () => {
+  // 模拟手机号
+  const phoneNumber = '13800000002'
+  const res = await postLoginWxMinSimpleAPI(phoneNumber)
+  loginSuccess(res.result)
+}
+
+const formData = reactive({
+  // 测试数据
+  account: '13123456789',
+  password: '123456',
+})
+// 表单登录
+const onFormLogin = async () => {
+  const res = await postLoginTraditionalAPI(formData)
+  loginSuccess(res.result)
+}
+
+// 登录成功处理函数
+const loginSuccess = (profit: LoginResult) => {
+  // 保存会员信息到仓库
+  memberStore.setProfile(profit)
+  // 成功提示
+  setTimeout(() => {
+    uni.showToast({ icon: 'success', title: '登录成功' })
+  }, 500)
+  // 跳转到“我的”页面
+  uni.switchTab({ url: '/pages/my/my' })
+}
 </script>
 
 <template>
@@ -11,12 +74,23 @@
     </view>
     <view class="login">
       <!-- 网页端表单登录 -->
-      <input class="input" type="text" placeholder="请输入用户名/手机号码" />
-      <input class="input" type="text" password placeholder="请输入密码" />
-      <button class="button phone">登录</button>
+      <input
+        class="input"
+        type="text"
+        placeholder="请输入用户名/手机号码"
+        v-model="formData.account"
+      />
+      <input
+        class="input"
+        type="text"
+        password
+        placeholder="请输入密码"
+        v-model="formData.password"
+      />
+      <button class="button phone" @tap="onFormLogin">登录</button>
 
       <!-- 小程序端授权登录 -->
-      <button class="button phone">
+      <button class="button phone" open-type="getPhoneNumber" @getphonenumber="onGetphonenumber">
         <text class="icon icon-phone"></text>
         手机号快捷登录
       </button>
@@ -26,7 +100,7 @@
         </view>
         <view class="options">
           <!-- 通用模拟登录 -->
-          <button>
+          <button @tap="onGetphonenumberSimple">
             <text class="icon icon-phone">模拟快捷登录</text>
           </button>
         </view>

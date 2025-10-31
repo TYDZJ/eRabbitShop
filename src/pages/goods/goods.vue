@@ -5,6 +5,8 @@ import type { GoodsResult } from '@/types/goods'
 import { onLoad } from '@dcloudio/uni-app'
 import { ref } from 'vue'
 import ServicePanel from './components/ServicePanel.vue'
+import AddressPanel from './components/AddressPanel.vue'
+import PageSkeleton from './components/PageSkeleton.vue'
 
 // 获取屏幕边界到安全区域距离
 const { safeAreaInsets } = uni.getSystemInfoSync()
@@ -19,11 +21,13 @@ const goodsData = ref<GoodsResult>()
 const getGoodsData = async () => {
   const res = await getGoodsAPI(query.id)
   goodsData.value = res.result
-  console.log(res)
 }
 
-onLoad(() => {
-  getGoodsData()
+// 加载状态
+const isloading = ref(true)
+onLoad(async () => {
+  await getGoodsData()
+  isloading.value = false
 })
 
 // 轮播图当前索引
@@ -41,10 +45,18 @@ const popup = ref<{
   open: (type?: UniHelper.UniPopupType) => void
   close: () => void
 }>()
+// popup名称
+const popupName = ref<'service' | 'address'>()
+// 打开弹窗
+const openPopup = (name: typeof popupName.value) => {
+  popupName.value = name
+  popup.value?.open()
+}
 </script>
 
 <template>
-  <scroll-view scroll-y class="viewport">
+  <PageSkeleton v-if="isloading" />
+  <scroll-view scroll-y class="viewport" v-else>
     <!-- 基本信息 -->
     <view class="goods">
       <!-- 商品主图 -->
@@ -77,11 +89,11 @@ const popup = ref<{
           <text class="label">选择</text>
           <text class="text ellipsis"> 请选择商品规格 </text>
         </view>
-        <view class="item arrow">
+        <view class="item arrow" @tap="openPopup('address')">
           <text class="label">送至</text>
           <text class="text ellipsis"> 请选择收获地址 </text>
         </view>
-        <view class="item arrow" @tap="popup!.open()">
+        <view class="item arrow" @tap="openPopup('service')">
           <text class="label">服务</text>
           <text class="text ellipsis"> 无忧退 快速退款 免费包邮 </text>
         </view>
@@ -153,7 +165,8 @@ const popup = ref<{
   </view>
 
   <uni-popup ref="popup" type="bottom" background-color="#fff">
-    <ServicePanel @close="popup?.close()" />
+    <AddressPanel v-if="popupName === 'address'" @close="popup?.close()" />
+    <ServicePanel v-if="popupName === 'service'" @close="popup?.close()" />
   </uni-popup>
 </template>
 

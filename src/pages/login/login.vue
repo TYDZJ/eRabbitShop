@@ -11,9 +11,9 @@
     </view>
     <view class="login">
       <!-- 网页端表单登录 -->
-      <!-- <input class="input" type="text" placeholder="请输入用户名/手机号码" /> -->
-      <!-- <input class="input" type="text" password placeholder="请输入密码" /> -->
-      <!-- <button class="button phone">登录</button> -->
+      <input class="input" type="text" placeholder="请输入用户名/手机号码" />
+      <input class="input" type="text" password placeholder="请输入密码" />
+      <button class="button phone">登录</button>
 
       <!-- 小程序端授权登录 -->
       <button class="button phone">
@@ -82,6 +82,7 @@ page {
     height: 80rpx;
     font-size: 28rpx;
     border-radius: 72rpx;
+    margin-bottom: 20rpx;
     color: #fff;
     .icon {
       font-size: 40rpx;

@@ -36,7 +36,7 @@ const onGetphonenumber: UniHelper.ButtonOnGetphonenumber = async (e) => {
 // 模拟手机号快捷登录
 const onGetphonenumberSimple = async () => {
   // 模拟手机号
-  const phoneNumber = '13800000002'
+  const phoneNumber = '13898765432'
   const res = await postLoginWxMinSimpleAPI(phoneNumber)
   loginSuccess(res.result)
 }

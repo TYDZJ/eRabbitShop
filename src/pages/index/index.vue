@@ -6,8 +6,8 @@ import { ref } from 'vue'
 import CustomNavbar from './components/CustomNavbar.vue'
 import CategoryPanel from './components/CategoryPanel.vue'
 import HotPanel from './components/HotPanel.vue'
-import type { XtxGuessInstance } from '@/types/component'
 import PageSkeleton from './components/PageSkeleton.vue'
+import { useGuessList } from '@/composables'
 
 const bannerList = ref<BannerItem[]>([])
 // 获取轮播图数据
@@ -37,11 +37,8 @@ onLoad(async () => {
   isloading.value = false
 })
 
-//触底滚动加载猜你喜欢
-const guessRef = ref<XtxGuessInstance>()
-const onScrollToLower = () => {
-  guessRef.value?.getMore()
-}
+// 猜你喜欢组合式函数
+const { guessRef, onScrolltolower } = useGuessList()
 
 // 下拉刷新
 const refresher_triggered = ref(false)
@@ -64,7 +61,7 @@ const onRefresherrefresh = async () => {
   <scroll-view
     class="scroll-view"
     scroll-y
-    @scrolltolower="onScrollToLower"
+    @scrolltolower="onScrolltolower"
     :refresher-enabled="true"
     @refresherrefresh="onRefresherrefresh"
     :refresher-triggered="refresher_triggered"

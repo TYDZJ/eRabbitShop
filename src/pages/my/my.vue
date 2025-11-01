@@ -1,7 +1,6 @@
 <script setup lang="ts">
+import { useGuessList } from '@/composables'
 import { useMemberStore } from '@/stores'
-import type { XtxGuessInstance } from '@/types/component'
-import { ref } from 'vue'
 
 // 获取屏幕边界到安全区域距离
 const { safeAreaInsets } = uni.getSystemInfoSync()
@@ -15,13 +14,9 @@ const orderTypes = [
 
 // 会员状态仓库
 const memberStore = useMemberStore()
-// 获取猜你喜欢实例
-const guessRef = ref<XtxGuessInstance>()
-// 滚动触底事件
-const onScrolltolower = () => {
-  // 获取猜你喜欢数据
-  guessRef.value?.getMore()
-}
+
+// 猜你喜欢组合式函数
+const { guessRef, onScrolltolower } = useGuessList()
 </script>
 
 <template>

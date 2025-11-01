@@ -48,15 +48,10 @@ export type ProfileDetail = BaseProfile & {
 }
 
 /** 修改个人信息参数 */
-export type UpdateProfile = {
-  /** 昵称 */
-  nickname?: string
-  /** 性别*/
-  gender?: Gender
-  /** 生日 */
-  birthday?: string
-  /** 职业 */
-  profession?: string
+export type UpdateProfile = Pick<
+  ProfileDetail,
+  'nickname' | 'gender' | 'birthday' | 'profession'
+> & {
   /** 省份编码 */
   provinceCode?: string
   /** 城市编码 */

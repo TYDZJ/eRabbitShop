@@ -6,7 +6,7 @@ import { onMounted, ref } from 'vue'
 
 const finished = ref(false)
 const pageParams: Required<PageParams> = {
-  page: import.meta.env.DEV ? 30 : 1,
+  page: import.meta.env.DEV ? 5 : 1,
   pageSize: 10,
 }
 const guessList = ref<GuessItem[]>([])
@@ -17,6 +17,8 @@ const getHomeGoodsGuessLikeData = async () => {
     return uni.showToast({ title: '没有更多数据了', icon: 'none' })
   }
   const res = await getHomeGoodsGuessLikeAPI(pageParams)
+  console.log(res)
+
   // 追加数组
   guessList.value.push(...res.result.items)
 

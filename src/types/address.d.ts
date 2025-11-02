@@ -12,9 +12,6 @@ export type AddressParams = {
   countyCode: string
   /** 详细地址 */
   address: string
-  /** 默认地址 */
-  isDefault: IsDefault
+  /** 默认地址，1为是，0为否 */
+  isDefault: number
 }
-
-// 默认地址，1为是，0为否
-type IsDefault = 0 | 1

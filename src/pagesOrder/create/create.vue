@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import { getMemberOrderPreAPI, getMemberOrderPreNowAPI, postMemberOrderAPI } from '@/services/order'
+import { useAddressStore } from '@/stores/modules/address'
+import type { OrderPreResult } from '@/types/order'
+import { onLoad } from '@dcloudio/uni-app'
 import { computed, ref } from 'vue'
 
 // 获取屏幕边界到安全区域距离
@@ -19,19 +23,82 @@ const activeDelivery = computed(() => deliveryList.value[activeIndex.value])
 const onChangeDelivery: UniHelper.SelectorPickerOnChange = (ev) => {
   activeIndex.value = ev.detail.value
 }
+
+const query = defineProps<{
+  skuId?: string
+  count?: string
+}>()
+
+// 订单信息
+const orderPre = ref<OrderPreResult>()
+// 获取购物车订单
+const getMemberOrderPreData = async () => {
+  if (query.skuId && query.count) {
+    // 获取立即购买订单
+    const res = await getMemberOrderPreNowAPI({
+      skuId: query.skuId,
+      count: query.count,
+    })
+    orderPre.value = res.result
+  } else {
+    // 从购物车获取预付订单
+    const res = await getMemberOrderPreAPI()
+    orderPre.value = res.result
+  }
+  console.log(orderPre.value)
+}
+
+onLoad(() => {
+  getMemberOrderPreData()
+})
+
+// 地址仓库
+const addressStore = useAddressStore()
+// 选择的收货地址
+const selectAddress = computed(() => {
+  return (
+    addressStore.selectedAddress || orderPre.value?.userAddresses.find((item) => item.isDefault)
+  )
+})
+
+// 提交订单
+const onOrderSubmit = async () => {
+  // 没有收货地址提醒
+  if (!selectAddress.value?.id) {
+    return uni.showToast({ icon: 'none', title: '请选择收货地址' })
+  }
+  // 发送请求
+  const res = await postMemberOrderAPI({
+    addressId: selectAddress.value?.id,
+    buyerMessage: buyerMessage.value,
+    deliveryTimeType: activeDelivery.value.type,
+    goods: orderPre.value!.goods.map((v) => ({ count: v.count, skuId: v.skuId })),
+    payChannel: 2,
+    payType: 1,
+  })
+  console.log(res)
+  // 关闭当前页面，跳转到订单详情，传递订单id
+  uni.redirectTo({ url: `/pagesOrder/detail/detail?id=${res.result.id}` })
+}
 </script>
 
 <template>
   <scroll-view scroll-y class="viewport">
     <!-- 收货地址 -->
     <navigator
-      v-if="false"
+      v-if="selectAddress"
       class="shipment"
       hover-class="none"
       url="/pagesMember/address/address?from=order"
     >
-      <view class="user"> 张三 13333333333 </view>
-      <view class="address"> 广东省 广州市 天河区 黑马程序员3 </view>
+      <view class="user">
+        {{ selectAddress.receiver }}
+        {{ selectAddress.contact }}
+      </view>
+      <view class="address">
+        {{ selectAddress.fullLocation }}
+        {{ selectAddress.address }}
+      </view>
       <text class="icon icon-right"></text>
     </navigator>
     <navigator
@@ -47,24 +114,21 @@ const onChangeDelivery: UniHelper.SelectorPickerOnChange = (ev) => {
     <!-- 商品信息 -->
     <view class="goods">
       <navigator
-        v-for="item in 2"
-        :key="item"
-        :url="`/pages/goods/goods?id=1`"
+        v-for="item in orderPre?.goods"
+        :key="item.skuId"
+        :url="`/pages/goods/goods?id=${item.id}`"
         class="item"
         hover-class="none"
       >
-        <image
-          class="picture"
-          src="https://yanxuan-item.nosdn.127.net/c07edde1047fa1bd0b795bed136c2bb2.jpg"
-        />
+        <image class="picture" :src="item.picture" />
         <view class="meta">
-          <view class="name ellipsis"> ins风小碎花泡泡袖衬110-160cm </view>
-          <view class="attrs">藏青小花 130</view>
+          <view class="name ellipsis"> {{ item.name }} </view>
+          <view class="attrs">{{ item.attrsText }}</view>
           <view class="prices">
-            <view class="pay-price symbol">99.00</view>
-            <view class="price symbol">99.00</view>
+            <view class="pay-price symbol">{{ item.payPrice }}</view>
+            <view class="price symbol">{{ item.price }}</view>
           </view>
-          <view class="count">x5</view>
+          <view class="count">x{{ item.count }}</view>
         </view>
       </navigator>
     </view>
@@ -92,21 +156,25 @@ const onChangeDelivery: UniHelper.SelectorPickerOnChange = (ev) => {
     <view class="settlement">
       <view class="item">
         <text class="text">商品总价: </text>
-        <text class="number symbol">495.00</text>
+        <text class="number symbol">{{ orderPre?.summary.totalPrice.toFixed(2) }}</text>
       </view>
       <view class="item">
         <text class="text">运费: </text>
-        <text class="number symbol">5.00</text>
+        <text class="number symbol">{{ orderPre?.summary.postFee.toFixed(2) }}</text>
       </view>
     </view>
+
+    <view :style="{ height: 5 + 'rpx' }"></view>
   </scroll-view>
 
   <!-- 吸底工具栏 -->
   <view class="toolbar" :style="{ paddingBottom: safeAreaInsets?.bottom + 'px' }">
     <view class="total-pay symbol">
-      <text class="number">99.00</text>
+      <text class="number">{{ orderPre?.summary.totalPayPrice.toFixed(2) }}</text>
     </view>
-    <view class="button" :class="{ disabled: true }"> 提交订单 </view>
+    <view class="button" :class="{ disabled: !selectAddress?.id }" @tap="onOrderSubmit">
+      提交订单
+    </view>
   </view>
 </template>
 
@@ -288,9 +356,6 @@ page {
 
 /* 吸底工具栏 */
 .toolbar {
-  position: fixed;
-  left: 0;
-  right: 0;
   bottom: calc(var(--window-bottom));
   z-index: 1;
 

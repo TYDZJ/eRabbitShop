@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { deleteMemberAddressByIdAPI, getMemberAddressAPI } from '@/services/address'
+import { useAddressStore } from '@/stores/modules/address'
 import type { AddressItem } from '@/types/goods'
-import { onShow } from '@dcloudio/uni-app'
+import { onShow, onLoad } from '@dcloudio/uni-app'
 import { ref } from 'vue'
 
 // 地址列表数据
@@ -30,6 +31,25 @@ const onAddressDelete = async (id: string) => {
     },
   })
 }
+
+onLoad((query) => {
+  // 判断是否来自订单页面
+  isFromOrder.value = query?.from === 'order'
+})
+
+// 是否来自订单页面
+const isFromOrder = ref(false)
+// 修改当前选中地址
+const onChangeAddress = (item: AddressItem) => {
+  // 只有来自订单页面才修改选中地址并返回
+  if (isFromOrder.value) {
+    // 修改选中收货地址
+    const addressStore = useAddressStore()
+    addressStore.changeSelectedAddress(item)
+    // 返回上一页
+    uni.navigateBack()
+  }
+}
 </script>
 
 <template>
@@ -40,7 +60,7 @@ const onAddressDelete = async (id: string) => {
         <uni-swipe-action class="address-list">
           <!-- 收货地址项 -->
           <uni-swipe-action-item class="item" v-for="item in addressList" :key="item.id">
-            <view class="item-content">
+            <view class="item-content" @tap="onChangeAddress(item)">
               <view class="user">
                 {{ item.receiver }}
                 <text class="contact">{{ item.contact }}</text>
@@ -51,6 +71,7 @@ const onAddressDelete = async (id: string) => {
                 class="edit"
                 hover-class="none"
                 :url="`/pagesMember/address-form/address-form?id=${item.id}`"
+                @tap.stop="() => {}"
               >
                 修改
               </navigator>

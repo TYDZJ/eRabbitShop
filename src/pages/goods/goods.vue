@@ -116,7 +116,8 @@ const onAddCart = async (e: SkuPopupEvent) => {
 }
 // 购买回调
 const onBuyNow = (e: SkuPopupEvent) => {
-  console.log(e)
+  // 跳转到订单创建页面
+  uni.navigateTo({ url: `/pagesOrder/create/create?skuId=${e._id}&count=${e.buy_num}` })
 }
 </script>
 

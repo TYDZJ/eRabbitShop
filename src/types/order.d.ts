@@ -1,4 +1,4 @@
-import type { AddressItem } from './address'
+import type { AddressItem } from './goods'
 
 /** 获取预付订单 返回信息 */
 export type OrderPreResult = {

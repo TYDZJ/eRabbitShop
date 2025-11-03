@@ -12,6 +12,7 @@ import type {
   SkuPopupInstance,
   SkuPopupLocaldata,
 } from '@/components/vk-data-goods-sku-popup/vk-data-goods-sku-popup'
+import { postMemberCartAPI } from '@/services/cart'
 
 // 获取屏幕边界到安全区域距离
 const { safeAreaInsets } = uni.getSystemInfoSync()
@@ -100,8 +101,18 @@ const selectArrText = computed(() => {
   return skuPopupRef.value?.selectArr?.join(' ').trim() || '请选择商品规格'
 })
 // 加入购物车回调
-const onAddCart = (e: SkuPopupEvent) => {
-  console.log(e)
+const onAddCart = async (e: SkuPopupEvent) => {
+  // 加入购物车请求
+  await postMemberCartAPI({
+    skuId: e._id,
+    count: e.buy_num,
+  })
+  // 提示并关闭sku弹窗
+  uni.showToast({
+    title: '已加入购物车',
+    icon: 'success',
+  })
+  isShowSku.value = false
 }
 // 购买回调
 const onBuyNow = (e: SkuPopupEvent) => {

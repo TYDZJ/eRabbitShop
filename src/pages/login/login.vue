@@ -57,11 +57,11 @@ const loginSuccess = (profit: LoginResult) => {
   // 保存会员信息到仓库
   memberStore.setProfile(profit)
   // 成功提示
+  uni.showToast({ icon: 'success', title: '登录成功' })
   setTimeout(() => {
-    uni.showToast({ icon: 'success', title: '登录成功' })
+    // 返回上一页
+    uni.navigateBack()
   }, 500)
-  // 跳转到“我的”页面
-  uni.switchTab({ url: '/pages/my/my' })
 }
 </script>
 

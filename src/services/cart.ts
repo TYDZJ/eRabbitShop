@@ -1,3 +1,4 @@
+import type { CartItem } from '@/types/cart'
 import { http } from '@/utils/http'
 /**
  * 加入购物车

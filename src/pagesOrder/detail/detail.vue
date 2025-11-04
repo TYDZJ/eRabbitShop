@@ -2,6 +2,7 @@
 import { useGuessList } from '@/composables'
 import { OrderState, orderStateList } from '@/services/constants'
 import {
+  deleteMemberOrderAPI,
   getMemberOrderByIdAPI,
   getMemberOrderCancelByIdAPI,
   getMemberOrderConsignmentByIdAPI,
@@ -128,14 +129,6 @@ const onOrderPay = async () => {
   uni.redirectTo({ url: `/pagesOrder/payment/payment?id=${query.id}` })
 }
 
-// 取消订单
-const onOrderCancel = async () => {
-  const res = await getMemberOrderCancelByIdAPI(query.id, { cancelReason: reason.value })
-  // 刷新页面数据
-  orderData.value = res.result
-  popup.value?.close()
-}
-
 const isDev = import.meta.env.DEV
 // 模拟发货
 const onOrderSend = async () => {
@@ -160,6 +153,27 @@ const onOrderConfirm = () => {
       }
     },
   })
+}
+
+// 删除订单
+const onOrderDelete = () => {
+  uni.showModal({
+    content: '是否确认删除订单？',
+    success: async (success) => {
+      if (success.confirm) {
+        await deleteMemberOrderAPI({ ids: [query.id] })
+        uni.redirectTo({ url: '/pagesOrder/list/list' })
+      }
+    },
+  })
+}
+
+// 取消订单
+const onOrderCancel = async () => {
+  const res = await getMemberOrderCancelByIdAPI(query.id, { cancelReason: reason.value })
+  // 刷新页面数据
+  orderData.value = res.result
+  popup.value?.close()
 }
 </script>
 
@@ -325,7 +339,11 @@ const onOrderConfirm = () => {
           <!-- 待评价状态: 展示去评价 -->
           <view class="button" v-if="orderData.orderState === OrderState.DaiPingJia"> 去评价 </view>
           <!-- 待评价/已完成/已取消 状态: 展示删除订单 -->
-          <view class="button delete" v-if="orderData.orderState >= OrderState.DaiPingJia">
+          <view
+            class="button delete"
+            v-if="orderData.orderState >= OrderState.DaiPingJia"
+            @tap="onOrderDelete"
+          >
             删除订单
           </view>
         </template>

@@ -1,9 +1,15 @@
 <script setup lang="ts">
 import { useGuessList } from '@/composables'
 import { OrderState, orderStateList } from '@/services/constants'
-import { getMemberOrderByIdAPI, getMemberOrderCancelByIdAPI } from '@/services/order'
+import {
+  getMemberOrderByIdAPI,
+  getMemberOrderCancelByIdAPI,
+  getMemberOrderConsignmentByIdAPI,
+  getMemberOrderLogisticsByIdAPI,
+  putMemberOrderReceiptByIdAPI,
+} from '@/services/order'
 import { getPayMockAPI, getPayWxPayMiniPayAPI } from '@/services/pay'
-import type { OrderResult } from '@/types/order'
+import type { LogisticItem, OrderResult } from '@/types/order'
 import { onLoad, onReady } from '@dcloudio/uni-app'
 import { ref } from 'vue'
 
@@ -43,6 +49,22 @@ const getMemberOrderByIdData = async () => {
   // 获取订单详情数据
   const res = await getMemberOrderByIdAPI(query.id)
   orderData.value = res.result
+  if (
+    [OrderState.DaiShouHuo, OrderState.DaiPingJia, OrderState.YiWanCheng].includes(
+      orderData.value!.orderState,
+    )
+  ) {
+    // 获取物流信息
+    getMemberOrderLogisticsByIdData()
+  }
+}
+
+// 物流信息
+const logisticsList = ref<LogisticItem[]>([])
+const getMemberOrderLogisticsByIdData = async () => {
+  // 获取物流信息
+  const res = await getMemberOrderLogisticsByIdAPI(query.id)
+  logisticsList.value = res.result.list
 }
 
 onLoad(() => {
@@ -108,12 +130,36 @@ const onOrderPay = async () => {
 
 // 取消订单
 const onOrderCancel = async () => {
-  const res = await getMemberOrderCancelByIdAPI(orderData.value!.id, { cancelReason: reason.value })
-  console.log(res)
+  const res = await getMemberOrderCancelByIdAPI(query.id, { cancelReason: reason.value })
   // 刷新页面数据
-  Object.assign(orderData, res.result)
-  orderData.value!.orderState = OrderState.YiQuXiao
+  orderData.value = res.result
   popup.value?.close()
+}
+
+const isDev = import.meta.env.DEV
+// 模拟发货
+const onOrderSend = async () => {
+  if (import.meta.env.DEV) {
+    getMemberOrderConsignmentByIdAPI(query.id)
+    // 修改订单状态为已发货
+    orderData.value!.orderState = OrderState.DaiShouHuo
+    uni.showToast({ title: '模拟发货成功', icon: 'success' })
+  }
+}
+
+// 确认收货
+const onOrderConfirm = () => {
+  uni.showModal({
+    content: '为保障您的权益，请收到货并确认无误后，再确认收货',
+    success: async (success) => {
+      if (success.confirm) {
+        const res = await putMemberOrderReceiptByIdAPI(query.id)
+        // 刷新页面数据
+        orderData.value = res.result
+        uni.showToast({ title: '确认收货成功', icon: 'success' })
+      }
+    },
+  })
 }
 </script>
 
@@ -165,7 +211,11 @@ const onOrderCancel = async () => {
               再次购买
             </navigator>
             <!-- 待发货状态：模拟发货,开发期间使用,用于修改订单状态为已发货 -->
-            <view v-if="orderData.orderState === OrderState.DaiShouHuo" class="button">
+            <view
+              v-if="isDev && orderData.orderState === OrderState.DaiFaHuo"
+              class="button"
+              @tap="onOrderSend"
+            >
               模拟发货
             </view>
           </view>
@@ -174,11 +224,11 @@ const onOrderCancel = async () => {
       <!-- 配送状态 -->
       <view class="shipment">
         <!-- 订单物流信息 -->
-        <view v-for="item in 1" :key="item" class="item">
+        <view v-for="item in logisticsList" :key="item.id" class="item">
           <view class="message">
-            您已在广州市天河区黑马程序员完成取件，感谢使用菜鸟驿站，期待再次为您服务。
+            {{ item.text }}
           </view>
-          <view class="date"> 2023-04-14 13:14:20 </view>
+          <view class="date"> {{ item.time }} </view>
         </view>
         <!-- 用户收货地址 -->
         <view class="locate">
@@ -265,7 +315,11 @@ const onOrderCancel = async () => {
             再次购买
           </navigator>
           <!-- 待收货状态: 展示确认收货 -->
-          <view class="button primary" v-if="orderData.orderState === OrderState.DaiShouHuo">
+          <view
+            class="button primary"
+            v-if="orderData.orderState === OrderState.DaiShouHuo"
+            @tap="onOrderConfirm"
+          >
             确认收货
           </view>
           <!-- 待评价状态: 展示去评价 -->

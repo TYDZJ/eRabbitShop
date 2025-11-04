@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useGuessList } from '@/composables'
 import { OrderState, orderStateList } from '@/services/constants'
-import { getMemberOrderByIdAPI } from '@/services/order'
+import { getMemberOrderByIdAPI, getMemberOrderCancelByIdAPI } from '@/services/order'
 import type { OrderResult } from '@/types/order'
 import { onLoad, onReady } from '@dcloudio/uni-app'
 import { ref } from 'vue'
@@ -11,7 +11,10 @@ const { safeAreaInsets } = uni.getSystemInfoSync()
 // 猜你喜欢
 const { guessRef, onScrolltolower } = useGuessList()
 // 弹出层组件
-const popup = ref<UniHelper.UniPopupInstance>()
+const popup = ref<{
+  open: (type?: UniHelper.UniPopupType) => void
+  close: () => void
+}>()
 // 取消原因列表
 const reasonList = ref([
   '商品无货',
@@ -85,6 +88,16 @@ onReady(() => {
 const onTimeup = () => {
   // 修改订单状态为已取消
   orderData.value!.orderState = OrderState.YiQuXiao
+}
+
+// 取消订单
+const onOrderCancel = async () => {
+  const res = await getMemberOrderCancelByIdAPI(orderData.value!.id, { cancelReason: reason.value })
+  console.log(res)
+  // 刷新页面数据
+  Object.assign(orderData, res.result)
+  orderData.value!.orderState = OrderState.YiQuXiao
+  popup.value?.close()
 }
 </script>
 
@@ -182,7 +195,7 @@ const onTimeup = () => {
             </view>
           </navigator>
           <!-- 待评价状态:展示按钮 -->
-          <view class="action" v-if="true">
+          <view class="action" v-if="orderData.orderState === OrderState.DaiPingJia">
             <view class="button primary">申请售后</view>
             <navigator url="" class="button"> 去评价 </navigator>
           </view>
@@ -266,7 +279,7 @@ const onTimeup = () => {
       </view>
       <view class="footer">
         <view class="button" @tap="popup?.close?.()">取消</view>
-        <view class="button primary">确认</view>
+        <view class="button primary" @tap="onOrderCancel">确认</view>
       </view>
     </view>
   </uni-popup>

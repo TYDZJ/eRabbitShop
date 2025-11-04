@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useGuessList } from '@/composables'
+import { OrderState, orderStateList } from '@/services/constants'
 import { getMemberOrderByIdAPI } from '@/services/order'
 import type { OrderResult } from '@/types/order'
 import { onLoad } from '@dcloudio/uni-app'
@@ -56,14 +57,14 @@ onLoad(() => {
     </view>
   </view>
   <scroll-view scroll-y class="viewport" id="scroller" @scrolltolower="onScrolltolower">
-    <template v-if="true">
+    <template v-if="orderData">
       <!-- 订单状态 -->
       <view class="overview" :style="{ paddingTop: safeAreaInsets!.top + 20 + 'px' }">
         <!-- 待付款状态:展示去支付按钮和倒计时 -->
-        <template v-if="true">
+        <template v-if="orderData.orderState === OrderState.DaiFuKuan">
           <view class="status icon-clock">等待付款</view>
           <view class="tips">
-            <text class="money">应付金额: ¥ {{ orderData?.payMoney }}</text>
+            <text class="money">应付金额: ¥ {{ orderData.payMoney }}</text>
             <text class="time">支付剩余</text>
             00 时 29 分 59 秒
           </view>
@@ -72,7 +73,7 @@ onLoad(() => {
         <!-- 其他订单状态:展示再次购买按钮 -->
         <template v-else>
           <!-- 订单状态文字 -->
-          <view class="status"> 待付款 </view>
+          <view class="status"> {{ orderStateList[orderData.orderState].text }} </view>
           <view class="button-group">
             <navigator
               class="button"
@@ -82,7 +83,9 @@ onLoad(() => {
               再次购买
             </navigator>
             <!-- 待发货状态：模拟发货,开发期间使用,用于修改订单状态为已发货 -->
-            <view v-if="false" class="button"> 模拟发货 </view>
+            <view v-if="orderData.orderState === OrderState.DaiShouHuo" class="button">
+              模拟发货
+            </view>
           </view>
         </template>
       </view>
@@ -97,10 +100,8 @@ onLoad(() => {
         </view>
         <!-- 用户收货地址 -->
         <view class="locate">
-          <view class="user">
-            {{ orderData?.receiverContact }} {{ orderData?.receiverMobile }}
-          </view>
-          <view class="address"> {{ orderData?.receiverAddress }} </view>
+          <view class="user"> {{ orderData.receiverContact }} {{ orderData.receiverMobile }} </view>
+          <view class="address"> {{ orderData.receiverAddress }} </view>
         </view>
       </view>
 
@@ -137,15 +138,15 @@ onLoad(() => {
         <view class="total">
           <view class="row">
             <view class="text">商品总价: </view>
-            <view class="symbol">{{ orderData?.totalMoney.toFixed(2) }}</view>
+            <view class="symbol">{{ orderData.totalMoney.toFixed(2) }}</view>
           </view>
           <view class="row">
             <view class="text">运费: </view>
-            <view class="symbol">{{ orderData?.postFee.toFixed(2) }}</view>
+            <view class="symbol">{{ orderData.postFee.toFixed(2) }}</view>
           </view>
           <view class="row">
             <view class="text">应付金额: </view>
-            <view class="symbol primary">{{ orderData?.payMoney.toFixed(2) }}</view>
+            <view class="symbol primary">{{ orderData.payMoney.toFixed(2) }}</view>
           </view>
         </view>
       </view>
@@ -157,7 +158,7 @@ onLoad(() => {
           <view class="item">
             订单编号: {{ query.id }} <text class="copy" @tap="onCopy(query.id)">复制</text>
           </view>
-          <view class="item">下单时间: {{ orderData?.createTime }}</view>
+          <view class="item">下单时间: {{ orderData.createTime }}</view>
         </view>
       </view>
 

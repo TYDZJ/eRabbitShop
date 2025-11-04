@@ -2,6 +2,7 @@
 import { useGuessList } from '@/composables'
 import { OrderState, orderStateList } from '@/services/constants'
 import { getMemberOrderByIdAPI, getMemberOrderCancelByIdAPI } from '@/services/order'
+import { getPayMockAPI, getPayWxPayMiniPayAPI } from '@/services/pay'
 import type { OrderResult } from '@/types/order'
 import { onLoad, onReady } from '@dcloudio/uni-app'
 import { ref } from 'vue'
@@ -90,6 +91,21 @@ const onTimeup = () => {
   orderData.value!.orderState = OrderState.YiQuXiao
 }
 
+// 订单支付
+const onOrderPay = async () => {
+  // 通过环境变量区分开发环境
+  if (import.meta.env.DEV) {
+    // 开发环境：模拟支付，修改订单状态为已支付
+    await getPayMockAPI({ orderId: query.id })
+  } else {
+    // 生产环境：获取支付参数 + 发起微信支付
+    const res = await getPayWxPayMiniPayAPI({ orderId: query.id })
+    await wx.requestPayment(res.result)
+  }
+  // 关闭当前页，再跳转支付结果页
+  uni.redirectTo({ url: `/pagesOrder/payment/payment?id=${query.id}` })
+}
+
 // 取消订单
 const onOrderCancel = async () => {
   const res = await getMemberOrderCancelByIdAPI(orderData.value!.id, { cancelReason: reason.value })
@@ -123,7 +139,7 @@ const onOrderCancel = async () => {
         <template v-if="orderData.orderState === OrderState.DaiFuKuan">
           <view class="status icon-clock">等待付款</view>
           <view class="tips">
-            <text class="money">应付金额: ¥ {{ orderData.payMoney }}</text>
+            <text class="money">应付金额: ¥ {{ orderData.payMoney.toFixed(2) }}</text>
             <text class="time">支付剩余</text>
             <uni-countdown
               :second="orderData.countdown"
@@ -134,7 +150,7 @@ const onOrderCancel = async () => {
               :show-colon="false"
             />
           </view>
-          <view class="button">去支付</view>
+          <view class="button" @tap="onOrderPay">去支付</view>
         </template>
         <!-- 其他订单状态:展示再次购买按钮 -->
         <template v-else>
@@ -236,7 +252,7 @@ const onOrderCancel = async () => {
       <view class="toolbar" :style="{ paddingBottom: safeAreaInsets?.bottom + 'px' }">
         <!-- 待付款状态:展示支付按钮 -->
         <template v-if="orderData.orderState === OrderState.DaiFuKuan">
-          <view class="button primary"> 去支付 </view>
+          <view class="button primary" @tap="onOrderPay"> 去支付 </view>
           <view class="button" @tap="popup?.open?.()"> 取消订单 </view>
         </template>
         <!-- 其他订单状态:按需展示按钮 -->

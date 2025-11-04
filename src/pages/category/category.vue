@@ -4,7 +4,7 @@ import { getHomeBannerAPI } from '@/services/home'
 import type { CategoryTopItem } from '@/types/category'
 import type { BannerItem } from '@/types/home'
 import { computed, onMounted, ref } from 'vue'
-import PageSekeleton from './components/PageSekeleton.vue'
+import PageSkeleton from './components/PageSkeleton.vue'
 
 // 获取轮播图数据
 const bannerList = ref<BannerItem[]>([])
@@ -40,7 +40,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <PageSekeleton v-if="isloading" />
+  <PageSkeleton v-if="isloading" />
   <view class="viewport" v-else>
     <!-- 搜索框 -->
     <view class="search">

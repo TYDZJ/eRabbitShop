@@ -2,7 +2,7 @@
 
 小兔鲜儿项目包含从首页浏览商品，商品详情，微信登录，加入购物车，提交订单，微信支付，订单管理等功能。
 
-当前仓库为小兔鲜儿的**项目模板**。
+当前仓库从小兔鲜儿的**项目模板**开始搭建。
 
 ### 技术栈
 
@@ -28,33 +28,6 @@
 
 [https://gitee.com/Megasu/uniapp-shop-vue3-ts/](https://gitee.com/Megasu/uniapp-shop-vue3-ts/)
 
-## 运行程序
-
-1. 安装依赖
-
-```shell
-# npm
-npm i --registry=https://registry.npmmirror.com
-
-# pnpm
-pnpm i --registry=https://registry.npmmirror.com
-```
-
-2. 运行程序
-
-```shell
-# 微信小程序端
-npm run dev:mp-weixin
-
-# H5端
-npm run dev:h5
-
-# App端
-需 HbuilderX 工具，运行 - 运行到手机或模拟器
-```
-
-3. 微信开发者工具导入 `/dist/dev/mp-weixin` 目录
-
 ### 工程结构解析
 
 ```
@@ -63,25 +36,66 @@ npm run dev:h5
 ├── dist                       # 打包文件夹（可删除重新打包）
 ├── src                        # 源代码
 │   ├── components             # 全局组件
+│   │   ├── vk-data-goods-sku-popup   # 商品 SKU 弹窗组件
+│   │   ├── vk-data-input-number-box  # 数字输入框组件
+│   │   ├── XtxGuess.vue       # 猜你喜欢组件
+│   │   └── XtxSwiper.vue      # 轮播图组件
 │   ├── composables            # 组合式函数
+│   │   └── index.ts           # 组合式函数入口文件
 │   ├── pages                  # 主包页面
-│       ├── index               # 首页
-│       ├── category            # 分类页
-│       ├── cart                # 购物车
-│       ├── my                  # 我的
-│       └── login               # 登录页
+│   │   ├── index              # 首页
+│   │   ├── category           # 分类页
+│   │   ├── cart               # 购物车
+│   │   ├── my                 # 我的
+│   │   ├── login              # 登录页
+│   │   ├── goods              # 商品详情页
+│   │   └── hot                # 热门推荐页
+│   ├── pagesMember            # 会员分包页面
+│   │   ├── address            # 地址管理页
+│   │   ├── address-form       # 地址表单页
+│   │   ├── profile            # 用户资料页
+│   │   └── settings           # 设置页
+│   ├── pagesOrder             # 订单分包页面
+│   │   ├── create             # 创建订单页
+│   │   ├── detail             # 订单详情页
+│   │   ├── list               # 订单列表页
+│   │   └── payment            # 支付页
 │   ├── services               # 所有请求
+│   │   ├── address.ts         # 地址相关请求
+│   │   ├── cart.ts            # 购物车相关请求
+│   │   ├── category.ts        # 分类相关请求
+│   │   ├── constants.ts       # 常量定义
+│   │   ├── goods.ts           # 商品相关请求
+│   │   ├── home.ts            # 首页相关请求
+│   │   ├── hot.ts             # 热门推荐相关请求
+│   │   ├── login.ts           # 登录相关请求
+│   │   ├── member.ts          # 会员相关请求
+│   │   ├── order.ts           # 订单相关请求
+│   │   └── pay.ts             # 支付相关请求
 │   ├── static                 # 存放应用引用的本地静态资源的目录
-│       ├── images              # 普通图片
-│       └── tabs                # tabBar 图片
+│   │   ├── images             # 普通图片
+│   │   └── tabs               # tabBar 图片
 │   ├── stores                 # 全局 pinia store
-│       ├── modules             # 模块
-│       └── index.ts            # store 入口
+│   │   ├── modules            # 模块
+│   │   │   ├── address.ts     # 地址状态管理
+│   │   │   └── member.ts      # 会员状态管理
+│   │   └── index.ts           # store 入口
 │   ├── styles                 # 全局样式
-│       └── fonts.scss          # 字体图标
+│   │   └── fonts.scss         # 字体图标
 │   ├── types                  # 类型声明文件
-│       └── component.d.ts      # 全局组件类型声明
+│   │   ├── address.d.ts       # 地址相关类型声明
+│   │   ├── cart.d.ts          # 购物车相关类型声明
+│   │   ├── category.d.ts      # 分类相关类型声明
+│   │   ├── component.d.ts     # 组件类型声明
+│   │   ├── global.d.ts        # 全局类型声明
+│   │   ├── goods.d.ts         # 商品相关类型声明
+│   │   ├── home.d.ts          # 首页相关类型声明
+│   │   ├── hot.d.ts           # 热门推荐相关类型声明
+│   │   ├── login.d.ts         # 登录相关类型声明
+│   │   ├── member.d.ts        # 会员相关类型声明
+│   │   └── order.d.ts         # 订单相关类型声明
 │   ├── utils                  # 全局方法
+│   │   └── http.ts            # HTTP 请求工具封装
 │   ├── App.vue                # 入口页面
 │   ├── main.ts                # Vue初始化入口文件
 │   ├── pages.json             # 配置页面路由等页面类信息
@@ -96,3 +110,7 @@ npm run dev:h5
 ├── tsconfig.json              # typescript 配置
 └── vite.config.ts             # vite 配置
 ```
+
+### AI分析
+
+这是一个典型的 uni-app 项目结构，采用了分包策略来组织不同的功能模块。主包包含了首页、分类、购物车、我的和登录等核心页面，而会员相关和订单相关的页面分别放在了 pagesMember 和 pagesOrder 分包中，有助于控制主包大小并提高加载性能。项目使用 TypeScript 进行开发，具有完整的类型定义，遵循现代前端开发的最佳实践。
